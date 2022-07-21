@@ -10,6 +10,7 @@ import {Errors} from '../libraries/helpers/Errors.sol';
 import {VersionedInitializable} from '../libraries/aave-upgradeability/VersionedInitializable.sol';
 import {IncentivizedERC20} from './IncentivizedERC20.sol';
 import {IAaveIncentivesController} from '../../interfaces/IAaveIncentivesController.sol';
+import {IMasterChef} from '../../interfaces/IMasterChef.sol';
 
 /**
  * @title Aave ERC20 AToken
@@ -37,12 +38,15 @@ contract AToken is
 
   bytes32 public DOMAIN_SEPARATOR;
 
+  uint256 internal _pid;
+
   ILendingPool internal _pool;
   address internal _treasury;
   address internal _underlyingAsset;
   IAaveIncentivesController internal _incentivesController;
+  IMasterChef internal _masterChef;
 
-  modifier onlyLendingPool {
+  modifier onlyLendingPool() {
     require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
     _;
   }
@@ -53,23 +57,16 @@ contract AToken is
 
   /**
    * @dev Initializes the aToken
-   * @param pool The address of the lending pool where this aToken will be used
-   * @param treasury The address of the Aave treasury, receiving the fees on this aToken
-   * @param underlyingAsset The address of the underlying asset of this aToken (E.g. WETH for aWETH)
-   * @param incentivesController The smart contract managing potential incentives distribution
-   * @param aTokenDecimals The decimals of the aToken, same as the underlying asset's
-   * @param aTokenName The name of the aToken
-   * @param aTokenSymbol The symbol of the aToken
+   * @param aTokenParams  A set of encoded parameters for aToken initialization
+   * @param poolParams A set of encoded parameters for pool mapping and initialization
+   * @param params A set of encoded parameters for additional initialization
+   * @param stakingParams A set of encoded parameters for staking initialization
    */
   function initialize(
-    ILendingPool pool,
-    address treasury,
-    address underlyingAsset,
-    IAaveIncentivesController incentivesController,
-    uint8 aTokenDecimals,
-    string calldata aTokenName,
-    string calldata aTokenSymbol,
-    bytes calldata params
+    bytes calldata aTokenParams,
+    bytes calldata poolParams,
+    bytes calldata params,
+    bytes calldata stakingParams
   ) external override initializer {
     uint256 chainId;
 
@@ -78,35 +75,35 @@ contract AToken is
       chainId := chainid()
     }
 
-    DOMAIN_SEPARATOR = keccak256(
-      abi.encode(
-        EIP712_DOMAIN,
-        keccak256(bytes(aTokenName)),
-        keccak256(EIP712_REVISION),
-        chainId,
-        address(this)
-      )
+    {
+      (string memory aTokenName, string memory aTokenSymbol, uint8 aTokenDecimals) = abi.decode(
+        aTokenParams,
+        (string, string, uint8)
+      );
+
+      _setName(aTokenName);
+      _setSymbol(aTokenSymbol);
+      _setDecimals(aTokenDecimals);
+
+      DOMAIN_SEPARATOR = keccak256(
+        abi.encode(
+          EIP712_DOMAIN,
+          keccak256(bytes(aTokenName)),
+          keccak256(EIP712_REVISION),
+          chainId,
+          address(this)
+        )
+      );
+    }
+
+    (_pool, _treasury, _underlyingAsset, _incentivesController) = abi.decode(
+      poolParams,
+      (ILendingPool, address, address, IAaveIncentivesController)
     );
 
-    _setName(aTokenName);
-    _setSymbol(aTokenSymbol);
-    _setDecimals(aTokenDecimals);
+    (_pid, _masterChef) = abi.decode(stakingParams, (uint256, IMasterChef));
 
-    _pool = pool;
-    _treasury = treasury;
-    _underlyingAsset = underlyingAsset;
-    _incentivesController = incentivesController;
-
-    emit Initialized(
-      underlyingAsset,
-      address(pool),
-      treasury,
-      address(incentivesController),
-      aTokenDecimals,
-      aTokenName,
-      aTokenSymbol,
-      params
-    );
+    emit Initialized(aTokenParams, poolParams, params, stakingParams);
   }
 
   /**
@@ -273,7 +270,7 @@ contract AToken is
   /**
    * @dev Returns the address of the underlying asset of this aToken (E.g. WETH for aWETH)
    **/
-  function UNDERLYING_ASSET_ADDRESS() public override view returns (address) {
+  function UNDERLYING_ASSET_ADDRESS() public view override returns (address) {
     return _underlyingAsset;
   }
 
@@ -346,14 +343,13 @@ contract AToken is
     //solium-disable-next-line
     require(block.timestamp <= deadline, 'INVALID_EXPIRATION');
     uint256 currentValidNonce = _nonces[owner];
-    bytes32 digest =
-      keccak256(
-        abi.encodePacked(
-          '\x19\x01',
-          DOMAIN_SEPARATOR,
-          keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, currentValidNonce, deadline))
-        )
-      );
+    bytes32 digest = keccak256(
+      abi.encodePacked(
+        '\x19\x01',
+        DOMAIN_SEPARATOR,
+        keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, currentValidNonce, deadline))
+      )
+    );
     require(owner == ecrecover(digest, v, r, s), 'INVALID_SIGNATURE');
     _nonces[owner] = currentValidNonce.add(1);
     _approve(owner, spender, value);
