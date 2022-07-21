@@ -11,6 +11,7 @@ import {VersionedInitializable} from '../libraries/aave-upgradeability/Versioned
 import {IncentivizedERC20} from './IncentivizedERC20.sol';
 import {IAaveIncentivesController} from '../../interfaces/IAaveIncentivesController.sol';
 import {IMasterChefV2} from '../../interfaces/IMasterChefV2.sol';
+import {ILendingPoolAddressesProvider} from '../../interfaces/ILendingPoolAddressesProvider.sol';
 
 /**
  * @title Aave ERC20 AToken
@@ -49,6 +50,12 @@ contract AToken is
 
   modifier onlyLendingPool() {
     require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
+    _;
+  }
+
+  modifier onlyPoolAdmin() {
+    ILendingPoolAddressesProvider _lendingPoolAddressProvider = _pool.getAddressesProvider();
+    require(_msgSender() == address(_lendingPoolAddressProvider), Erros.CALLER_NOT_POOL_ADMIN);
     _;
   }
 
