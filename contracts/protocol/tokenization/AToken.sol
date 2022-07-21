@@ -10,6 +10,8 @@ import {Errors} from '../libraries/helpers/Errors.sol';
 import {VersionedInitializable} from '../libraries/aave-upgradeability/VersionedInitializable.sol';
 import {IncentivizedERC20} from './IncentivizedERC20.sol';
 import {IAaveIncentivesController} from '../../interfaces/IAaveIncentivesController.sol';
+import {IMasterChefV2} from '../../interfaces/IMasterChefV2.sol';
+import {ILendingPoolAddressesProvider} from '../../interfaces/ILendingPoolAddressesProvider.sol';
 
 /**
  * @title Aave ERC20 AToken
@@ -37,13 +39,27 @@ contract AToken is
 
   bytes32 public DOMAIN_SEPARATOR;
 
+  uint256 internal _pid;
+
   ILendingPool internal _pool;
   address internal _treasury;
   address internal _underlyingAsset;
   IAaveIncentivesController internal _incentivesController;
+  IMasterChefV2 internal _masterChef;
+  IERC20 internal _sushi;
 
-  modifier onlyLendingPool {
+  address internal _rewardFeeDestination;
+  uint256 public pct100 = 100000000000;
+  uint256 public rewardFeeRate = 500000000; // 0.5% in 10^9
+
+  modifier onlyLendingPool() {
     require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
+    _;
+  }
+
+  modifier onlyLendingPoolAdmin() {
+    ILendingPoolAddressesProvider _lendingPoolAddressProvider = _pool.getAddressesProvider();
+    require(_msgSender() == address(_lendingPoolAddressProvider), Errors.CALLER_NOT_POOL_ADMIN);
     _;
   }
 
@@ -53,23 +69,16 @@ contract AToken is
 
   /**
    * @dev Initializes the aToken
-   * @param pool The address of the lending pool where this aToken will be used
-   * @param treasury The address of the Aave treasury, receiving the fees on this aToken
-   * @param underlyingAsset The address of the underlying asset of this aToken (E.g. WETH for aWETH)
-   * @param incentivesController The smart contract managing potential incentives distribution
-   * @param aTokenDecimals The decimals of the aToken, same as the underlying asset's
-   * @param aTokenName The name of the aToken
-   * @param aTokenSymbol The symbol of the aToken
+   * @param aTokenParams  A set of encoded parameters for aToken initialization
+   * @param poolParams A set of encoded parameters for pool mapping and initialization
+   * @param params A set of encoded parameters for additional initialization
+   * @param stakingParams A set of encoded parameters for staking initialization
    */
   function initialize(
-    ILendingPool pool,
-    address treasury,
-    address underlyingAsset,
-    IAaveIncentivesController incentivesController,
-    uint8 aTokenDecimals,
-    string calldata aTokenName,
-    string calldata aTokenSymbol,
-    bytes calldata params
+    bytes calldata aTokenParams,
+    bytes calldata poolParams,
+    bytes calldata params,
+    bytes calldata stakingParams
   ) external override initializer {
     uint256 chainId;
 
@@ -78,35 +87,123 @@ contract AToken is
       chainId := chainid()
     }
 
-    DOMAIN_SEPARATOR = keccak256(
-      abi.encode(
-        EIP712_DOMAIN,
-        keccak256(bytes(aTokenName)),
-        keccak256(EIP712_REVISION),
-        chainId,
-        address(this)
-      )
+    {
+      (string memory aTokenName, string memory aTokenSymbol, uint8 aTokenDecimals) = abi.decode(
+        aTokenParams,
+        (string, string, uint8)
+      );
+
+      _setName(aTokenName);
+      _setSymbol(aTokenSymbol);
+      _setDecimals(aTokenDecimals);
+
+      DOMAIN_SEPARATOR = keccak256(
+        abi.encode(
+          EIP712_DOMAIN,
+          keccak256(bytes(aTokenName)),
+          keccak256(EIP712_REVISION),
+          chainId,
+          address(this)
+        )
+      );
+    }
+
+    (_pool, _treasury, _underlyingAsset, _incentivesController) = abi.decode(
+      poolParams,
+      (ILendingPool, address, address, IAaveIncentivesController)
     );
 
-    _setName(aTokenName);
-    _setSymbol(aTokenSymbol);
-    _setDecimals(aTokenDecimals);
-
-    _pool = pool;
-    _treasury = treasury;
-    _underlyingAsset = underlyingAsset;
-    _incentivesController = incentivesController;
-
-    emit Initialized(
-      underlyingAsset,
-      address(pool),
-      treasury,
-      address(incentivesController),
-      aTokenDecimals,
-      aTokenName,
-      aTokenSymbol,
-      params
+    (_pid, _masterChef, _rewardFeeDestination) = abi.decode(
+      stakingParams,
+      (uint256, IMasterChefV2, address)
     );
+
+    _sushi = _masterChef.SUSHI();
+
+    if (address(_masterChef) != address(0)) {
+      IERC20(_underlyingAsset).approve(address(_masterChef), type(uint256).max);
+    }
+
+    emit Initialized(aTokenParams, poolParams, params, stakingParams);
+  }
+
+  function setRewardFeeRate(uint256 _rewardFeeRate) external override onlyLendingPoolAdmin {
+    require(_rewardFeeRate >= 0, Errors.VL_INVALID_AMOUNT);
+    require(_rewardFeeRate < pct100, Errors.VL_INVALID_AMOUNT);
+
+    uint256 _old = rewardFeeRate;
+    rewardFeeRate = _rewardFeeRate;
+    emit RewardFeeChanged(_old, _rewardFeeRate);
+  }
+
+  function setRewardFeeDestination(address _destination) external override onlyLendingPoolAdmin {
+    require(_destination != address(0), Errors.ZERO_ADDRESS);
+
+    address _old = _rewardFeeDestination;
+    _rewardFeeDestination = _destination;
+    emit RewardFeeDestinationChanged(_old, _destination);
+  }
+
+  /**
+   * @dev Charge fee and transfer rewards to the user.
+   * - Internal function, only called in `_distributeMasterChefHarvest(...).
+   * @param earnings The amount of rewards claimed.
+   * @param who The receiver of the rewards after fee deduction.
+   * @param token The reward token.
+   */
+  function _chargeFeeAndTransfer(
+    address token,
+    uint256 earnings,
+    address who
+  ) internal {
+    if (earnings == 0) {
+      return;
+    }
+
+    uint256 fee = earnings.mul(rewardFeeRate).div(pct100);
+    uint256 remainder = earnings.sub(fee);
+
+    if (remainder > 0) {
+      IERC20(token).transfer(who, remainder);
+      emit RewardClaimed(earnings, remainder, who);
+    }
+
+    if (fee > 0) {
+      IERC20(token).transfer(_rewardFeeDestination, fee);
+      emit RewardFeeCharged(earnings, fee, _rewardFeeDestination);
+    }
+  }
+
+  /**
+   * @dev Withdraw the underlying asset from MasterChefV2.
+   * - Internal function, only called in `burn(...).
+   * @param amount The amount of underlying asset to withdraw from MasterChefV2.
+   */
+  function _withdrawFromMasterChef(uint256 amount) internal {
+    if (address(_masterChef) == address(0)) {
+      return;
+    }
+
+    // TODO: take care of rewards by rewarder of masterchef pool with _pid.
+
+    _masterChef.withdrawAndHarvest(_pid, amount, address(this));
+    emit MasterChefWithdrawnAndHarvested(amount, address(this));
+  }
+
+  /**
+   * @dev Distribute rewards gained from MasterChefV2.
+   * - Internal function, only called in `burn(...).
+   * @param user The rewards receiver
+   * @param amount The amount of underlying asset to withdraw from MasterChefV2.
+   */
+  function _distributeMasterChefHarvest(address user, uint256 amount) internal {
+    uint256 sushiBalance = _sushi.balanceOf(address(this));
+
+    uint256 earnings = _earned(amount);
+    uint256 rewardsToDistribute = sushiBalance <= earnings ? sushiBalance : earnings; // just for another sanity check.
+
+    _chargeFeeAndTransfer(address(_sushi), rewardsToDistribute, user);
+    emit DistributedMasterChefHarvest(amount, user);
   }
 
   /**
@@ -127,10 +224,28 @@ contract AToken is
     require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
     _burn(user, amountScaled);
 
+    _withdrawFromMasterChef(amount);
     IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
+    _distributeMasterChefHarvest(receiverOfUnderlying, amount);
 
     emit Transfer(user, address(0), amount);
     emit Burn(user, receiverOfUnderlying, amount, index);
+  }
+
+  /**
+   * @dev Deposits the underlying asset into MasterChefV2.
+   * - Internal function, only called in `mint(...).
+   * @param amount The amount of underlying asset to deposit in MasterChefV2.
+   */
+  function _depositInMasterChef(uint256 amount) internal {
+    if (address(_masterChef) == address(0)) {
+      return;
+    }
+
+    // TODO: take care of rewards by rewarder of masterchef pool with _pid.
+
+    _masterChef.deposit(_pid, amount, address(this));
+    emit MasterChefDeposit(amount, address(this));
   }
 
   /**
@@ -151,6 +266,7 @@ contract AToken is
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
     _mint(user, amountScaled);
+    _depositInMasterChef(amount);
 
     emit Transfer(address(0), user, amount);
     emit Mint(user, amount, index);
@@ -225,6 +341,32 @@ contract AToken is
   }
 
   /**
+   * @dev Returns the total accumulated rewards across all users.
+   */
+  function accumulatedRewards() public view override returns (uint256) {
+    return _masterChef.pendingSushi(_pid, address(this)).add(_sushi.balanceOf(address(this)));
+  }
+
+  /**
+   * @dev Returns the total accumulated rewards for a user.
+   */
+  function earned(address user) external view override returns (uint256) {
+    return _earned(balanceOf(user));
+  }
+
+  /**
+   * @dev Returns the total accumulated rewards for a user.
+   * - Internal function callable by earned()
+   */
+  function _earned(uint256 amount) internal view returns (uint256) {
+    uint256 totalAccumulatedRewards = accumulatedRewards();
+
+    uint256 percentShare = amount.mul(1e18).div(totalSupply());
+
+    return totalAccumulatedRewards.mul(percentShare).div(1e18);
+  }
+
+  /**
    * @dev Returns the scaled balance of the user and the scaled total supply.
    * @param user The address of the user
    * @return The scaled balance of the user
@@ -273,7 +415,7 @@ contract AToken is
   /**
    * @dev Returns the address of the underlying asset of this aToken (E.g. WETH for aWETH)
    **/
-  function UNDERLYING_ASSET_ADDRESS() public override view returns (address) {
+  function UNDERLYING_ASSET_ADDRESS() public view override returns (address) {
     return _underlyingAsset;
   }
 
@@ -346,14 +488,13 @@ contract AToken is
     //solium-disable-next-line
     require(block.timestamp <= deadline, 'INVALID_EXPIRATION');
     uint256 currentValidNonce = _nonces[owner];
-    bytes32 digest =
-      keccak256(
-        abi.encodePacked(
-          '\x19\x01',
-          DOMAIN_SEPARATOR,
-          keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, currentValidNonce, deadline))
-        )
-      );
+    bytes32 digest = keccak256(
+      abi.encodePacked(
+        '\x19\x01',
+        DOMAIN_SEPARATOR,
+        keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, currentValidNonce, deadline))
+      )
+    );
     require(owner == ecrecover(digest, v, r, s), 'INVALID_SIGNATURE');
     _nonces[owner] = currentValidNonce.add(1);
     _approve(owner, spender, value);
