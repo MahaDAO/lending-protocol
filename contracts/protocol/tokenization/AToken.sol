@@ -45,6 +45,7 @@ contract AToken is
   address internal _underlyingAsset;
   IAaveIncentivesController internal _incentivesController;
   IMasterChefV2 internal _masterChef;
+  IERC20 internal _sushi;
 
   modifier onlyLendingPool() {
     require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
@@ -102,6 +103,8 @@ contract AToken is
     );
 
     (_pid, _masterChef) = abi.decode(stakingParams, (uint256, IMasterChefV2));
+
+    _sushi = _masterChef.SUSHI();
 
     if (address(_masterChef) != address(0)) {
       IERC20(_underlyingAsset).approve(address(_masterChef), type(uint256).max);
@@ -255,6 +258,24 @@ contract AToken is
    **/
   function scaledBalanceOf(address user) external view override returns (uint256) {
     return super.balanceOf(user);
+  }
+
+  /**
+   * @dev Returns the total accumulated rewards across all users.
+   */
+  function accumulatedRewards() public view override returns (uint256) {
+    return _masterChef.pendingSushi(_pid, address(this)).add(_sushi.balanceOf(address(this)));
+  }
+
+  /**
+   * @dev Returns the total accumulated rewards for a user.
+   */
+  function earned(address user) external view override returns (uint256) {
+    uint256 totalAccumulatedRewards = accumulatedRewards();
+
+    uint256 percentShare = balanceOf(user).mul(1e18).div(totalSupply());
+
+    return totalAccumulatedRewards.mul(percentShare).div(1e18);
   }
 
   /**

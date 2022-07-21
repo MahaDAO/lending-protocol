@@ -23,6 +23,8 @@ interface IMasterChefV2 {
     uint64 allocPoint;
   }
 
+  function SUSHI() external view returns (IERC20);
+
   function poolInfo(uint256 pid) external view returns (PoolInfo memory);
 
   function userInfo(uint256 pid, address user) external view returns (UserInfo memory);
