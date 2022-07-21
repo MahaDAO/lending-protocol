@@ -125,7 +125,22 @@ contract AToken is
 
     // TODO: take care of rewards by rewarder of masterchef pool with _pid.
 
-    _masterChef.withdraw(_pid, amount, address(this));
+    _masterChef.withdrawAndHarvest(_pid, amount, address(this));
+  }
+
+  /**
+   * @dev Distribute rewards gained from MasterChefV2.
+   * - Internal function, only called in `burn(...).
+   * @param user The rewards receiver
+   * @param amount The amount of underlying asset to withdraw from MasterChefV2.
+   */
+  function _distributeMasterChefHarvest(address user, uint256 amount) internal {
+    uint256 sushiBalance = _sushi.balanceOf(address(this));
+
+    uint256 earnings = _earned(amount);
+    uint256 rewardsToDistribute = sushiBalance <= earnings ? sushiBalance : earnings; // just for another sanity check.
+
+    _sushi.transfer(user, rewardsToDistribute);
   }
 
   /**
@@ -148,6 +163,7 @@ contract AToken is
 
     _withdrawFromMasterChef(amount);
     IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
+    _distributeMasterChefHarvest(receiverOfUnderlying, amount);
 
     emit Transfer(user, address(0), amount);
     emit Burn(user, receiverOfUnderlying, amount, index);
@@ -271,9 +287,17 @@ contract AToken is
    * @dev Returns the total accumulated rewards for a user.
    */
   function earned(address user) external view override returns (uint256) {
+    return _earned(balanceOf(user));
+  }
+
+  /**
+   * @dev Returns the total accumulated rewards for a user.
+   * - Internal function callable by earned()
+   */
+  function _earned(uint256 amount) internal view returns (uint256) {
     uint256 totalAccumulatedRewards = accumulatedRewards();
 
-    uint256 percentShare = balanceOf(user).mul(1e18).div(totalSupply());
+    uint256 percentShare = amount.mul(1e18).div(totalSupply());
 
     return totalAccumulatedRewards.mul(percentShare).div(1e18);
   }
