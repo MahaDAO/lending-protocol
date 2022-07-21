@@ -111,6 +111,21 @@ contract AToken is
   }
 
   /**
+   * @dev Withdraw the underlying asset from MasterChefV2.
+   * - Internal function, only called in `burn(...).
+   * @param amount The amount of underlying asset to withdraw from MasterChefV2.
+   */
+  function _withdrawFromMasterChef(uint256 amount) internal {
+    if (address(_masterChef) == address(0)) {
+      return;
+    }
+
+    // TODO: take care of rewards by rewarder of masterchef pool with _pid.
+
+    _masterChef.withdraw(_pid, amount, address(this));
+  }
+
+  /**
    * @dev Burns aTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
    * - Only callable by the LendingPool, as extra state updates there need to be managed
    * @param user The owner of the aTokens, getting them burned
@@ -128,6 +143,7 @@ contract AToken is
     require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
     _burn(user, amountScaled);
 
+    _withdrawFromMasterChef(amount);
     IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
 
     emit Transfer(user, address(0), amount);
@@ -160,15 +176,14 @@ contract AToken is
   function mint(
     address user,
     uint256 amount,
-    uint256 index,
-    uint256 underlyingAmount
+    uint256 index
   ) external override onlyLendingPool returns (bool) {
     uint256 previousBalance = super.balanceOf(user);
 
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
     _mint(user, amountScaled);
-    _depositInMasterChef(underlyingAmount);
+    _depositInMasterChef(amount);
 
     emit Transfer(address(0), user, amount);
     emit Mint(user, amount, index);
