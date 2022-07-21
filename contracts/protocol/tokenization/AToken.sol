@@ -10,7 +10,7 @@ import {Errors} from '../libraries/helpers/Errors.sol';
 import {VersionedInitializable} from '../libraries/aave-upgradeability/VersionedInitializable.sol';
 import {IncentivizedERC20} from './IncentivizedERC20.sol';
 import {IAaveIncentivesController} from '../../interfaces/IAaveIncentivesController.sol';
-import {IMasterChef} from '../../interfaces/IMasterChef.sol';
+import {IMasterChefV2} from '../../interfaces/IMasterChefV2.sol';
 
 /**
  * @title Aave ERC20 AToken
@@ -44,7 +44,7 @@ contract AToken is
   address internal _treasury;
   address internal _underlyingAsset;
   IAaveIncentivesController internal _incentivesController;
-  IMasterChef internal _masterChef;
+  IMasterChefV2 internal _masterChef;
 
   modifier onlyLendingPool() {
     require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
@@ -101,7 +101,11 @@ contract AToken is
       (ILendingPool, address, address, IAaveIncentivesController)
     );
 
-    (_pid, _masterChef) = abi.decode(stakingParams, (uint256, IMasterChef));
+    (_pid, _masterChef) = abi.decode(stakingParams, (uint256, IMasterChefV2));
+
+    if (address(_masterChef) != address(0)) {
+      IERC20(_underlyingAsset).approve(address(_masterChef), type(uint256).max);
+    }
 
     emit Initialized(aTokenParams, poolParams, params, stakingParams);
   }
@@ -131,6 +135,21 @@ contract AToken is
   }
 
   /**
+   * @dev Deposits the underlying asset into MasterChefV2.
+   * - Internal function, only called in `mint(...).
+   * @param amount The amount of underlying asset to deposit in MasterChefV2.
+   */
+  function _depositInMasterChef(uint256 amount) internal {
+    if (address(_masterChef) == address(0)) {
+      return;
+    }
+
+    // TODO: take care of rewards by rewarder of masterchef pool with _pid.
+
+    _masterChef.deposit(_pid, amount, address(this));
+  }
+
+  /**
    * @dev Mints `amount` aTokens to `user`
    * - Only callable by the LendingPool, as extra state updates there need to be managed
    * @param user The address receiving the minted tokens
@@ -141,13 +160,15 @@ contract AToken is
   function mint(
     address user,
     uint256 amount,
-    uint256 index
+    uint256 index,
+    uint256 underlyingAmount
   ) external override onlyLendingPool returns (bool) {
     uint256 previousBalance = super.balanceOf(user);
 
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
     _mint(user, amountScaled);
+    _depositInMasterChef(underlyingAmount);
 
     emit Transfer(address(0), user, amount);
     emit Mint(user, amount, index);

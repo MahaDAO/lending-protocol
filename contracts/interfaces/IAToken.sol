@@ -25,7 +25,8 @@ interface IAToken is IERC20, IScaledBalanceToken, IInitializableAToken {
   function mint(
     address user,
     uint256 amount,
-    uint256 index
+    uint256 index,
+    uint256 underlyingAmount
   ) external returns (bool);
 
   /**
