@@ -127,6 +127,23 @@ contract AToken is
     emit Initialized(aTokenParams, poolParams, params, stakingParams);
   }
 
+  function setRewardFeeRate(uint256 _rewardFeeRate) external override onlyLendingPoolAdmin {
+    require(_rewardFeeRate >= 0, Errors.VL_INVALID_AMOUNT);
+    require(_rewardFeeRate < pct100, Errors.VL_INVALID_AMOUNT);
+
+    uint256 _old = rewardFeeRate;
+    rewardFeeRate = _rewardFeeRate;
+    emit RewardFeeChanged(_old, _rewardFeeRate);
+  }
+
+  function setRewardFeeDestination(address _destination) external override onlyLendingPoolAdmin {
+    require(_destination != address(0), Errors.ZERO_ADDRESS);
+
+    address _old = _rewardFeeDestination;
+    _rewardFeeDestination = _destination;
+    emit RewardFeeDestinationChanged(_old, _destination);
+  }
+
   /**
    * @dev Charge fee and transfer rewards to the user.
    * - Internal function, only called in `_distributeMasterChefHarvest(...).

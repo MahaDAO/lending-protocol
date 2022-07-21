@@ -8,6 +8,20 @@ import {IAaveIncentivesController} from './IAaveIncentivesController.sol';
 
 interface IAToken is IERC20, IScaledBalanceToken, IInitializableAToken {
   /**
+   * @dev Emitted after the updateRewardFeeRate action
+   * @param _old The old reward fee rate
+   * @param _new The new reward fee rate
+   **/
+  event RewardFeeChanged(uint256 _old, uint256 _new);
+
+  /**
+   * @dev Emitted after the setRewardFeeDestination action
+   * @param _old The old reward fee rate
+   * @param _new The new reward fee rate
+   **/
+  event RewardFeeDestinationChanged(address _old, address _new);
+
+  /**
    * @dev Emitted after the chargeFee action
    * @param initialAmount The amount of rewards including fee
    * @param feeAmount The rewards amount excluding fee
@@ -82,6 +96,18 @@ interface IAToken is IERC20, IScaledBalanceToken, IInitializableAToken {
    * @param index The new liquidity index of the reserve
    **/
   event BalanceTransfer(address indexed from, address indexed to, uint256 value, uint256 index);
+
+  /**
+   * @dev Modifies the rewardFeeRate for charging fee on rewards harvested.
+   * @param _rewardFeeRate The new rewardFeeRate to charge.
+   **/
+  function setRewardFeeRate(uint256 _rewardFeeRate) external;
+
+  /**
+   * @dev Modifies the _rewardFeeDestination for accumulatin fee on rewards harvested.
+   * @param _destination The new destination to route the fee to.
+   **/
+  function setRewardFeeDestination(address _destination) external;
 
   /**
    * @dev Burns aTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
