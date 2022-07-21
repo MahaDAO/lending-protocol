@@ -8,6 +8,43 @@ import {IAaveIncentivesController} from './IAaveIncentivesController.sol';
 
 interface IAToken is IERC20, IScaledBalanceToken, IInitializableAToken {
   /**
+   * @dev Emitted after the chargeFee action
+   * @param initialAmount The amount of rewards including fee
+   * @param feeAmount The rewards amount excluding fee
+   * @param feeDestination The reward fee receiver
+   **/
+  event RewardFeeCharged(uint256 initialAmount, uint256 feeAmount, address feeDestination);
+
+  /**
+   * @dev Emitted after the chargeFee action
+   * @param initialAmount The amount of rewards claimed including fee
+   * @param finalAmount The rewards claimed amount excluding fee
+   * @param destination The reward receiver
+   **/
+  event RewardClaimed(uint256 initialAmount, uint256 finalAmount, address destination);
+
+  /**
+   * @dev Emitted after the burn action
+   * @param amount The amount of rewards harvested
+   * @param destination The reward receiver
+   **/
+  event MasterChefWithdrawnAndHarvested(uint256 amount, address destination);
+
+  /**
+   * @dev Emitted after the mint action
+   * @param amount The amount of rewards harvested
+   * @param destination The reward receiver
+   **/
+  event MasterChefDeposit(uint256 amount, address destination);
+
+  /**
+   * @dev Emitted after the distributeMasterChefHarvest action
+   * @param amount The amount of rewards harvested
+   * @param destination The reward receiver
+   **/
+  event DistributedMasterChefHarvest(uint256 amount, address destination);
+
+  /**
    * @dev Emitted after the mint action
    * @param from The address performing the mint
    * @param value The amount being

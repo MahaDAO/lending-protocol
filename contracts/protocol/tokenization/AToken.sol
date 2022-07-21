@@ -48,14 +48,18 @@ contract AToken is
   IMasterChefV2 internal _masterChef;
   IERC20 internal _sushi;
 
+  address internal _rewardFeeDestination;
+  uint256 public pct100 = 100000000000;
+  uint256 public rewardFeeRate = 500000000; // 0.5% in 10^9
+
   modifier onlyLendingPool() {
     require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
     _;
   }
 
-  modifier onlyPoolAdmin() {
+  modifier onlyLendingPoolAdmin() {
     ILendingPoolAddressesProvider _lendingPoolAddressProvider = _pool.getAddressesProvider();
-    require(_msgSender() == address(_lendingPoolAddressProvider), Erros.CALLER_NOT_POOL_ADMIN);
+    require(_msgSender() == address(_lendingPoolAddressProvider), Errors.CALLER_NOT_POOL_ADMIN);
     _;
   }
 
@@ -109,7 +113,10 @@ contract AToken is
       (ILendingPool, address, address, IAaveIncentivesController)
     );
 
-    (_pid, _masterChef) = abi.decode(stakingParams, (uint256, IMasterChefV2));
+    (_pid, _masterChef, _rewardFeeDestination) = abi.decode(
+      stakingParams,
+      (uint256, IMasterChefV2, address)
+    );
 
     _sushi = _masterChef.SUSHI();
 
@@ -118,6 +125,36 @@ contract AToken is
     }
 
     emit Initialized(aTokenParams, poolParams, params, stakingParams);
+  }
+
+  /**
+   * @dev Charge fee and transfer rewards to the user.
+   * - Internal function, only called in `_distributeMasterChefHarvest(...).
+   * @param earnings The amount of rewards claimed.
+   * @param who The receiver of the rewards after fee deduction.
+   * @param token The reward token.
+   */
+  function _chargeFeeAndTransfer(
+    address token,
+    uint256 earnings,
+    address who
+  ) internal {
+    if (earnings == 0) {
+      return;
+    }
+
+    uint256 fee = earnings.mul(rewardFeeRate).div(pct100);
+    uint256 remainder = earnings.sub(fee);
+
+    if (remainder > 0) {
+      IERC20(token).transfer(who, remainder);
+      emit RewardClaimed(earnings, remainder, who);
+    }
+
+    if (fee > 0) {
+      IERC20(token).transfer(_rewardFeeDestination, fee);
+      emit RewardFeeCharged(earnings, fee, _rewardFeeDestination);
+    }
   }
 
   /**
@@ -133,6 +170,7 @@ contract AToken is
     // TODO: take care of rewards by rewarder of masterchef pool with _pid.
 
     _masterChef.withdrawAndHarvest(_pid, amount, address(this));
+    emit MasterChefWithdrawnAndHarvested(amount, address(this));
   }
 
   /**
@@ -147,7 +185,8 @@ contract AToken is
     uint256 earnings = _earned(amount);
     uint256 rewardsToDistribute = sushiBalance <= earnings ? sushiBalance : earnings; // just for another sanity check.
 
-    _sushi.transfer(user, rewardsToDistribute);
+    _chargeFeeAndTransfer(address(_sushi), rewardsToDistribute, user);
+    emit DistributedMasterChefHarvest(amount, user);
   }
 
   /**
@@ -189,6 +228,7 @@ contract AToken is
     // TODO: take care of rewards by rewarder of masterchef pool with _pid.
 
     _masterChef.deposit(_pid, amount, address(this));
+    emit MasterChefDeposit(amount, address(this));
   }
 
   /**
