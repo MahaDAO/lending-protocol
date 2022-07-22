@@ -55,6 +55,7 @@ import {
   UiPoolDataProviderV2V3Factory,
   UiIncentiveDataProviderV2V3,
   UiIncentiveDataProviderV2Factory,
+  UiIncentiveDataProviderFactory,
 } from '../types';
 import {
   withSaveAndVerify,
@@ -77,6 +78,14 @@ export const deployUiIncentiveDataProviderV2 = async (verify?: boolean) =>
   withSaveAndVerify(
     await new UiIncentiveDataProviderV2Factory(await getFirstSigner()).deploy(),
     eContractid.UiIncentiveDataProviderV2,
+    [],
+    verify
+  );
+
+export const deployUiIncentiveDataProvider = async (verify?: boolean) =>
+  withSaveAndVerify(
+    await new UiIncentiveDataProviderFactory(await getFirstSigner()).deploy(),
+    eContractid.UiIncentiveDataProvider,
     [],
     verify
   );
@@ -440,16 +449,16 @@ export const deployGenericAToken = async (
     verify
   );
 
-  await instance.initialize(
-    poolAddress,
-    treasuryAddress,
-    underlyingAssetAddress,
-    incentivesController,
-    '18',
-    name,
-    symbol,
-    '0x10'
-  );
+  // await instance.initialize(
+  //   poolAddress,
+  //   treasuryAddress,
+  //   underlyingAssetAddress,
+  //   incentivesController,
+  //   '18',
+  //   name,
+  //   symbol,
+  //   '0x10'
+  // );
 
   return instance;
 };
@@ -480,16 +489,16 @@ export const deployDelegationAwareAToken = async (
     verify
   );
 
-  await instance.initialize(
-    pool,
-    treasuryAddress,
-    underlyingAssetAddress,
-    incentivesController,
-    '18',
-    name,
-    symbol,
-    '0x10'
-  );
+  // await instance.initialize(
+  //   pool,
+  //   treasuryAddress,
+  //   underlyingAssetAddress,
+  //   incentivesController,
+  //   '18',
+  //   name,
+  //   symbol,
+  //   '0x10'
+  // );
 
   return instance;
 };
@@ -639,7 +648,7 @@ export const deployMockAToken = async (
     verify
   );
 
-  await instance.initialize(args[0], args[2], args[1], args[3], '18', args[4], args[5], args[6]);
+  // await instance.initialize(args[0], args[2], args[1], args[3], '18', args[4], args[5], args[6]);
 
   return instance;
 };
