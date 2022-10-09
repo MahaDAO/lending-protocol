@@ -13,7 +13,9 @@ export enum eEthereumNetwork {
   main = 'main',
   coverage = 'coverage',
   hardhat = 'hardhat',
+
   tenderly = 'tenderly',
+  goerli = 'goerli',
 }
 
 export enum ePolygonNetwork {
@@ -71,6 +73,7 @@ export enum eContractid {
   MockFlashLoanReceiver = 'MockFlashLoanReceiver',
   WalletBalanceProvider = 'WalletBalanceProvider',
   AToken = 'AToken',
+  ATokenMasterChef = 'ATokenMasterChef',
   MockAToken = 'MockAToken',
   DelegationAwareAToken = 'DelegationAwareAToken',
   MockStableDebtToken = 'MockStableDebtToken',
@@ -224,6 +227,7 @@ export interface iAssetBase<T> {
   BAT: T;
   MKR: T;
   LINK: T;
+  ARTH: T;
   KNC: T;
   WBTC: T;
   MANA: T;
@@ -237,6 +241,7 @@ export interface iAssetBase<T> {
   ENJ: T;
   UniDAIWETH: T;
   UniWBTCWETH: T;
+  UniARTHWETH: T;
   UniAAVEWETH: T;
   UniBATWETH: T;
   UniDAIUSDC: T;
@@ -264,6 +269,7 @@ export type iAssetsWithoutUSD<T> = Omit<iAssetBase<T>, 'USD'>;
 export type iAavePoolAssets<T> = Pick<
   iAssetsWithoutUSD<T>,
   | 'DAI'
+  | 'ARTH'
   | 'TUSD'
   | 'USDC'
   | 'USDT'
@@ -286,30 +292,7 @@ export type iAavePoolAssets<T> = Pick<
   | 'xSUSHI'
 >;
 
-export type iLpPoolAssets<T> = Pick<
-  iAssetsWithoutUSD<T>,
-  | 'DAI'
-  | 'USDC'
-  | 'USDT'
-  | 'WBTC'
-  | 'WETH'
-  | 'UniDAIWETH'
-  | 'UniWBTCWETH'
-  | 'UniAAVEWETH'
-  | 'UniBATWETH'
-  | 'UniDAIUSDC'
-  | 'UniCRVWETH'
-  | 'UniLINKWETH'
-  | 'UniMKRWETH'
-  | 'UniRENWETH'
-  | 'UniSNXWETH'
-  | 'UniUNIWETH'
-  | 'UniUSDCWETH'
-  | 'UniWBTCUSDC'
-  | 'UniYFIWETH'
-  | 'BptWBTCWETH'
-  | 'BptBALWETH'
->;
+export type iLpPoolAssets<T> = Pick<iAssetsWithoutUSD<T>, 'ARTH' | 'WETH' | 'UniARTHWETH'>;
 
 export type iMaticPoolAssets<T> = Pick<
   iAssetsWithoutUSD<T>,
@@ -432,6 +415,7 @@ export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.main]: T;
   [eEthereumNetwork.hardhat]: T;
   [eEthereumNetwork.tenderly]: T;
+  [eEthereumNetwork.goerli]: T;
 }
 
 export interface iPolygonParamsPerNetwork<T> {
@@ -480,7 +464,7 @@ export interface IProtocolGlobalConfig {
 }
 
 export interface IMocksConfig {
-  AllAssetsInitialPrices: iAssetBase<string>;
+  AllAssetsInitialPrices: { [key: string]: string };
 }
 
 export interface ILendingRateOracleRatesCommon {
@@ -538,6 +522,7 @@ export interface IAaveConfiguration extends ICommonConfiguration {
 
 export interface IAmmConfiguration extends ICommonConfiguration {
   ReservesConfig: iLpPoolAssets<IReserveParams>;
+  StakingContracts: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
 }
 
 export interface IMaticConfiguration extends ICommonConfiguration {

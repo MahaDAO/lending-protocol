@@ -35,6 +35,7 @@ export const AaveConfig: IAaveConfiguration = {
   MarketId: 'Aave genesis market',
   ProviderId: 1,
   ReservesConfig: {
+    ARTH: strategyAAVE,
     AAVE: strategyAAVE,
     BAT: strategyBAT,
     BUSD: strategyBUSD,
@@ -58,6 +59,7 @@ export const AaveConfig: IAaveConfiguration = {
     xSUSHI: strategyXSUSHI,
   },
   ReserveAssets: {
+    [eEthereumNetwork.goerli]: {},
     [eEthereumNetwork.buidlerevm]: {},
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
