@@ -35,6 +35,7 @@ export const AaveConfig: IAaveConfiguration = {
   MarketId: 'Aave genesis market',
   ProviderId: 1,
   ReservesConfig: {
+    ARTH: strategyAAVE,
     AAVE: strategyAAVE,
     BAT: strategyBAT,
     BUSD: strategyBUSD,
