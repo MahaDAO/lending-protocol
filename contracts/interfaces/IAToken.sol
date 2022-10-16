@@ -8,57 +8,6 @@ import {IAaveIncentivesController} from './IAaveIncentivesController.sol';
 
 interface IAToken is IERC20, IScaledBalanceToken, IInitializableAToken {
   /**
-   * @dev Emitted after the updateRewardFeeRate action
-   * @param _old The old reward fee rate
-   * @param _new The new reward fee rate
-   **/
-  event RewardFeeChanged(uint256 _old, uint256 _new);
-
-  /**
-   * @dev Emitted after the setRewardFeeDestination action
-   * @param _old The old reward fee rate
-   * @param _new The new reward fee rate
-   **/
-  event RewardFeeDestinationChanged(address _old, address _new);
-
-  /**
-   * @dev Emitted after the chargeFee action
-   * @param initialAmount The amount of rewards including fee
-   * @param feeAmount The rewards amount excluding fee
-   * @param feeDestination The reward fee receiver
-   **/
-  event RewardFeeCharged(uint256 initialAmount, uint256 feeAmount, address feeDestination);
-
-  /**
-   * @dev Emitted after the chargeFee action
-   * @param initialAmount The amount of rewards claimed including fee
-   * @param finalAmount The rewards claimed amount excluding fee
-   * @param destination The reward receiver
-   **/
-  event RewardClaimed(uint256 initialAmount, uint256 finalAmount, address destination);
-
-  /**
-   * @dev Emitted after the burn action
-   * @param amount The amount of rewards harvested
-   * @param destination The reward receiver
-   **/
-  event MasterChefWithdrawnAndHarvested(uint256 amount, address destination);
-
-  /**
-   * @dev Emitted after the mint action
-   * @param amount The amount of rewards harvested
-   * @param destination The reward receiver
-   **/
-  event MasterChefDeposit(uint256 amount, address destination);
-
-  /**
-   * @dev Emitted after the distributeMasterChefHarvest action
-   * @param amount The amount of rewards harvested
-   * @param destination The reward receiver
-   **/
-  event DistributedMasterChefHarvest(uint256 amount, address destination);
-
-  /**
    * @dev Emitted after the mint action
    * @param from The address performing the mint
    * @param value The amount being
@@ -96,18 +45,6 @@ interface IAToken is IERC20, IScaledBalanceToken, IInitializableAToken {
    * @param index The new liquidity index of the reserve
    **/
   event BalanceTransfer(address indexed from, address indexed to, uint256 value, uint256 index);
-
-  /**
-   * @dev Modifies the rewardFeeRate for charging fee on rewards harvested.
-   * @param _rewardFeeRate The new rewardFeeRate to charge.
-   **/
-  function setRewardFeeRate(uint256 _rewardFeeRate) external;
-
-  /**
-   * @dev Modifies the _rewardFeeDestination for accumulatin fee on rewards harvested.
-   * @param _destination The new destination to route the fee to.
-   **/
-  function setRewardFeeDestination(address _destination) external;
 
   /**
    * @dev Burns aTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
@@ -167,14 +104,4 @@ interface IAToken is IERC20, IScaledBalanceToken, IInitializableAToken {
    * @dev Returns the address of the underlying asset of this aToken (E.g. WETH for aWETH)
    **/
   function UNDERLYING_ASSET_ADDRESS() external view returns (address);
-
-  /**
-   * @dev Returns the total accumulated rewards across all users.
-   */
-  function accumulatedRewards() external view returns (uint256);
-
-  /**
-   * @dev Returns the total accumulated rewards for a user.
-   */
-  function earned(address user) external view returns (uint256);
 }
