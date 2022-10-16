@@ -34,7 +34,8 @@ const DEFAULT_BLOCK_GAS_LIMIT = 8000000;
 const DEFAULT_GAS_MUL = 5;
 const HARDFORK = 'istanbul';
 const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY || '';
-const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
+const MNEMONIC_PATH = "m/44'/60'/0'/0";
+const MNEMONIC = process.env.MNEMONIC || '';
 const UNLIMITED_BYTECODE_SIZE = process.env.UNLIMITED_BYTECODE_SIZE === 'true';
 
 // Prevent to load scripts before compilation and typechain
@@ -60,7 +61,12 @@ const getCommonNetworkConfig = (networkName: eNetwork, networkId: number) => ({
   gasMultiplier: DEFAULT_GAS_MUL,
   gasPrice: NETWORKS_DEFAULT_GAS[networkName],
   chainId: networkId,
-  accounts: [PRIVATE_KEY]
+  accounts: {
+    mnemonic: MNEMONIC,
+    path: MNEMONIC_PATH,
+    initialIndex: 0,
+    count: 20,
+  },
 });
 
 let forkMode;
