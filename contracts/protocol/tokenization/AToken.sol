@@ -70,7 +70,7 @@ contract AToken is
     string calldata aTokenName,
     string calldata aTokenSymbol,
     bytes calldata params
-  ) external override initializer {
+  ) external virtual override initializer {
     uint256 chainId;
 
     //solium-disable-next-line
@@ -122,7 +122,7 @@ contract AToken is
     address receiverOfUnderlying,
     uint256 amount,
     uint256 index
-  ) external override onlyLendingPool {
+  ) external virtual override onlyLendingPool {
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
     _burn(user, amountScaled);
@@ -145,7 +145,7 @@ contract AToken is
     address user,
     uint256 amount,
     uint256 index
-  ) external override onlyLendingPool returns (bool) {
+  ) external virtual override onlyLendingPool returns (bool) {
     uint256 previousBalance = super.balanceOf(user);
 
     uint256 amountScaled = amount.rayDiv(index);
@@ -164,7 +164,7 @@ contract AToken is
    * @param amount The amount of tokens getting minted
    * @param index The new liquidity index of the reserve
    */
-  function mintToTreasury(uint256 amount, uint256 index) external override onlyLendingPool {
+  function mintToTreasury(uint256 amount, uint256 index) external virtual override onlyLendingPool {
     if (amount == 0) {
       return;
     }

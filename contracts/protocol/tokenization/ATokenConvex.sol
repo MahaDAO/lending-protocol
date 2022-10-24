@@ -45,7 +45,7 @@ contract ATokenConvex is AToken, FeeBase {
     string calldata aTokenName,
     string calldata aTokenSymbol,
     bytes calldata params
-  ) external override initializer {
+  ) external virtual override initializer {
     uint256 chainId;
 
     //solium-disable-next-line
@@ -78,17 +78,6 @@ contract ATokenConvex is AToken, FeeBase {
     rewardsContract = IConvexBaseRewards(_rewardsContract);
     curve = IERC20(_curve);
     convex = IERC20(_convex);
-
-    emit Initialized(
-      underlyingAsset,
-      address(pool),
-      treasury,
-      address(incentivesController),
-      aTokenDecimals,
-      aTokenName,
-      aTokenSymbol,
-      params
-    );
   }
 
   /**
@@ -104,7 +93,7 @@ contract ATokenConvex is AToken, FeeBase {
     address receiverOfUnderlying,
     uint256 amount,
     uint256 index
-  ) external override onlyLendingPool {
+  ) external virtual override onlyLendingPool {
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
 
