@@ -69,14 +69,16 @@ export const getLendingPool = async (address?: tEthereumAddress) =>
     await getFirstSigner()
   );
 
-export const getPriceOracle = async (address?: tEthereumAddress) =>
-  await PriceOracleFactory.connect(
+export const getPriceOracle = async (address?: tEthereumAddress) => {
+  console.log(address, `${eContractid.PriceOracle}.${DRE.network.name}`);
+  return await PriceOracleFactory.connect(
     address ||
       (
         await getDb().get(`${eContractid.PriceOracle}.${DRE.network.name}`).value()
       ).address,
     await getFirstSigner()
   );
+};
 
 export const getAToken = async (address?: tEthereumAddress) =>
   await ATokenFactory.connect(

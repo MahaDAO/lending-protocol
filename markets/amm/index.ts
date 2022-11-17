@@ -21,9 +21,9 @@ export const AmmConfig: IAmmConfiguration = {
   },
   ReserveAssets: {
     [eEthereumNetwork.goerli]: {
-      ARTH: '0x85a79d4aef51bED57DB20C989085E4BF4733e5B2',
-      USDC: '0xEe96053c808A869E37Ac049bE94b20DA2405Eebe',
-      DAI: '0x9634761b6C9559849000d037E18cEa3665CDa1AB',
+      // ARTH: '0x85a79d4aef51bED57DB20C989085E4BF4733e5B2',
+      // USDC: '0xEe96053c808A869E37Ac049bE94b20DA2405Eebe',
+      // DAI: '0x9634761b6C9559849000d037E18cEa3665CDa1AB',
     },
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.main]: {

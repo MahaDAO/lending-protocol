@@ -5,7 +5,7 @@ import {
   deployAllMockAggregators,
   setInitialMarketRatesInRatesOracleByHelper,
 } from '../../helpers/oracles-helpers';
-import { ICommonConfiguration, iAssetBase, TokenContractId } from '../../helpers/types';
+import { ICommonConfiguration, iAssetBase, TokenContractId, eNetwork } from '../../helpers/types';
 import { waitForTx } from '../../helpers/misc-utils';
 import { getAllAggregatorsAddresses, getAllTokenAddresses } from '../../helpers/mock-helpers';
 import { ConfigNames, loadPoolConfig, getQuoteCurrency } from '../../helpers/configuration';
@@ -20,6 +20,8 @@ task('dev:deploy-oracles', 'Deploy oracles for dev environment')
   .addFlag('verify', 'Verify contracts at Etherscan')
   .addParam('pool', `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ verify, pool }, localBRE) => {
+    const network = <eNetwork>localBRE.network.name;
+
     await localBRE.run('set-DRE');
     const poolConfig = loadPoolConfig(pool);
     const {
@@ -45,7 +47,7 @@ task('dev:deploy-oracles', 'Deploy oracles for dev environment')
     const addressesProvider = await getLendingPoolAddressesProvider();
     const admin = await addressesProvider.getPoolAdmin();
 
-    const fallbackOracle = await getPriceOracle('0x0F9d5ED72f6691E47abe2f79B890C3C33e924092');
+    const fallbackOracle = await getPriceOracle(poolConfig.FallbackOracle[network]);
     await waitForTx(await fallbackOracle.setEthUsdPrice(MockUsdPriceInWei));
     await setInitialAssetPricesInOracle(AllAssetsInitialPrices, mockTokensAddress, fallbackOracle);
 
@@ -78,6 +80,8 @@ task('dev:deploy-oracles', 'Deploy oracles for dev environment')
     const allReservesAddresses = {
       ...tokensAddressesWithoutUsd,
     };
+
+    console.log('hit', LendingRateOracleRatesCommon, allReservesAddresses, admin);
     await setInitialMarketRatesInRatesOracleByHelper(
       LendingRateOracleRatesCommon,
       allReservesAddresses,
