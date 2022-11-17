@@ -7,7 +7,7 @@ import {
 } from '../../helpers/contracts-getters';
 import { getParamPerNetwork } from '../../helpers/contracts-helpers';
 import { DRE } from '../../helpers/misc-utils';
-import { eEthereumNetwork, eNetwork, ePolygonNetwork, eXDaiNetwork } from '../../helpers/types';
+import { eEthereumNetwork, eNetwork } from '../../helpers/types';
 
 task('print-config', 'Inits the DRE, to have access to all the plugins')
   .addParam('dataProvider', 'Address of AaveProtocolDataProvider')
@@ -59,7 +59,7 @@ task('print-config', 'Inits the DRE, to have access to all the plugins')
       'isFrozen',
     ];
     const tokensFields = ['aToken', 'stableDebtToken', 'variableDebtToken'];
-    for (const [symbol, address] of Object.entries(
+    for (const [symbol, address] of Object.entries<string>(
       getParamPerNetwork(poolConfig.ReserveAssets, network as eNetwork)
     )) {
       console.log(`- ${symbol} asset config`);
@@ -67,7 +67,7 @@ task('print-config', 'Inits the DRE, to have access to all the plugins')
 
       const reserveData = await protocolDataProvider.getReserveConfigurationData(address);
       const tokensAddresses = await protocolDataProvider.getReserveTokensAddresses(address);
-      fields.forEach((field, index) => {
+      fields.forEach((field) => {
         console.log(`  - ${field}:`, reserveData[field].toString());
       });
       tokensFields.forEach((field, index) => {

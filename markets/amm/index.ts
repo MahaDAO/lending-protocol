@@ -16,8 +16,8 @@ export const AmmConfig: IAmmConfiguration = {
   ProviderId: 1,
   ReservesConfig: {
     USDC: strategyStable,
-    ARTH: strategyARTH,
     DAI: strategyStable,
+    ARTH: strategyARTH,
   },
   ReserveAssets: {
     [eEthereumNetwork.goerli]: {

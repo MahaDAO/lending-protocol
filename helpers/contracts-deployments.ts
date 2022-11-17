@@ -134,9 +134,6 @@ export const deployUiPoolDataProvider = async (
 };
 
 const readArtifact = async (id: string) => {
-  if (DRE.network.name === eEthereumNetwork.buidlerevm) {
-    return buidlerReadArtifact(DRE.config.paths.artifacts, id);
-  }
   return (DRE as HardhatRuntimeEnvironment).artifacts.readArtifact(id);
 };
 
@@ -505,7 +502,7 @@ export const deployDelegationAwareATokenImpl = async (verify: boolean) =>
 export const deployAllMockTokens = async (verify?: boolean) => {
   const tokens: { [symbol: string]: MockContract | MintableERC20 } = {};
 
-  const protoConfigData = getReservesConfigByPool(AavePools.proto);
+  const protoConfigData = getReservesConfigByPool(AavePools.main);
 
   for (const tokenSymbol of Object.keys(TokenContractId)) {
     let decimals = '18';

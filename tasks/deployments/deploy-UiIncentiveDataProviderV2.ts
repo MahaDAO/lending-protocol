@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config';
-import { eContractid, eEthereumNetwork, eNetwork, ePolygonNetwork } from '../../helpers/types';
+import { eContractid } from '../../helpers/types';
 import { deployUiIncentiveDataProviderV2 } from '../../helpers/contracts-deployments';
 import { exit } from 'process';
 

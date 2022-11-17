@@ -194,61 +194,25 @@ export interface iAssetCommon<T> {
 export interface iAssetBase<T> {
   WETH: T;
   DAI: T;
-  TUSD: T;
-  USDC: T;
-  USDT: T;
-  SUSD: T;
-  AAVE: T;
-  MAHA: T;
-  BAT: T;
-  MKR: T;
-  LINK: T;
   ARTH: T;
-  KNC: T;
-  WBTC: T;
-  MANA: T;
-  ZRX: T;
-  SNX: T;
-  BUSD: T;
-  YFI: T;
-  UNI: T;
-  USD: T;
-  REN: T;
-  ENJ: T;
-  UniDAIWETH: T;
-  UniWBTCWETH: T;
+  USDC: T;
   UniARTHWETH: T;
-  UniAAVEWETH: T;
-  UniBATWETH: T;
-  UniDAIUSDC: T;
-  UniCRVWETH: T;
-  UniLINKWETH: T;
-  UniMKRWETH: T;
-  UniRENWETH: T;
-  UniSNXWETH: T;
-  UniUNIWETH: T;
-  UniUSDCWETH: T;
-  UniWBTCUSDC: T;
-  UniYFIWETH: T;
-  BptWBTCWETH: T;
-  BptBALWETH: T;
-  WMATIC: T;
-  STAKE: T;
-  xSUSHI: T;
-  WAVAX: T;
 }
 
-export type iAssetsWithoutETH<T> = Omit<iAssetBase<T>, 'ETH'>;
+export type iMockAssets<T> = Pick<iAssetBase<T>, 'ARTH' | 'WETH' | 'DAI' | 'USDC'>;
 
-export type iAssetsWithoutUSD<T> = Omit<iAssetBase<T>, 'USD'>;
+export type iAssetsWithoutETH<T> = Omit<iAssetBase<T>, 'WETH'>;
 
-export type iAavePoolAssets<T> = Pick<iAssetsWithoutUSD<T>, 'ARTH' | 'WETH' | 'UniARTHWETH'>;
+export type iAssetsWithoutUSD<T> = Omit<iAssetBase<T>, 'USDC' | 'DAI'>;
 
-export type iLpPoolAssets<T> = Pick<iAssetsWithoutUSD<T>, 'DAI' | 'ARTH' | 'USDC'>;
+export type iMainPoolAssets<T> = Pick<
+  iAssetBase<T>,
+  'ARTH' | 'WETH' | 'DAI' | 'USDC' | 'UniARTHWETH'
+>;
 
-export type iMultiPoolsAssets<T> = iAssetCommon<T> | iAavePoolAssets<T>;
+export type iAmmPoolAssets<T> = Pick<iAssetBase<T>, 'ARTH' | 'DAI' | 'USDC'>;
 
-export type iAavePoolTokens<T> = Omit<iAavePoolAssets<T>, 'ETH'>;
+export type iMultiPoolsAssets<T> = iAssetCommon<T> | iMainPoolAssets<T>;
 
 export type iAssetAggregatorBase<T> = iAssetsWithoutETH<T>;
 
@@ -329,6 +293,7 @@ export interface iEthereumParamsPerNetwork<T> {
 
 export interface iParamsPerPool<T> {
   [AavePools.amm]: T;
+  [AavePools.main]: T;
 }
 
 export interface iBasicDistributionParams {
@@ -409,12 +374,12 @@ export interface ICommonConfiguration extends IBaseConfiguration {
 }
 
 export interface IMainConfiguration extends ICommonConfiguration {
-  ReservesConfig: iAavePoolAssets<IReserveParams>;
+  ReservesConfig: iMainPoolAssets<IReserveParams>;
   StakingContracts: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
 }
 
 export interface IAmmConfiguration extends ICommonConfiguration {
-  ReservesConfig: iLpPoolAssets<IReserveParams>;
+  ReservesConfig: iAmmPoolAssets<IReserveParams>;
   StakingContracts: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
 }
 

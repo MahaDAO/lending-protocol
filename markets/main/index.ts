@@ -1,13 +1,13 @@
 import { IMainConfiguration, eEthereumNetwork } from '../../helpers/types';
 
 import { CommonsConfig } from '../commons';
-import { strategyARTHWETH, strategyWETH, strategyARTH } from './reservesConfigs';
+import { strategyARTHWETH, strategyStable, strategyWETH, strategyARTH } from './reservesConfigs';
 
 // ----------------
 // POOL--SPECIFIC PARAMS
 // ----------------
 
-export const AmmConfig: IMainConfiguration = {
+export const MainConfig: IMainConfiguration = {
   ...CommonsConfig,
   MarketId: 'MahaLend Market',
   ATokenNamePrefix: 'MahaLend Market',
@@ -17,6 +17,8 @@ export const AmmConfig: IMainConfiguration = {
   ReservesConfig: {
     WETH: strategyWETH,
     ARTH: strategyARTH,
+    DAI: strategyStable,
+    USDC: strategyStable,
     UniARTHWETH: strategyARTHWETH,
   },
   ReserveAssets: {
@@ -52,4 +54,4 @@ export const AmmConfig: IMainConfiguration = {
   },
 };
 
-export default AmmConfig;
+export default MainConfig;
