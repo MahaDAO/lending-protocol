@@ -1,7 +1,7 @@
 import { IAmmConfiguration, eEthereumNetwork } from '../../helpers/types';
 
 import { CommonsConfig } from '../commons';
-import { strategyStable, strategyARTH } from './reservesConfigs';
+import { strategyStable, strategyUSDC, strategyARTH } from './reservesConfigs';
 
 // ----------------
 // POOL--SPECIFIC PARAMS
@@ -15,28 +15,25 @@ export const AmmConfig: IAmmConfiguration = {
   VariableDebtTokenNamePrefix: 'MahaLend AMM variable debt',
   ProviderId: 1,
   ReservesConfig: {
-    USDC: strategyStable,
+    USDC: strategyUSDC,
     DAI: strategyStable,
     ARTH: strategyARTH,
   },
   ReserveAssets: {
-    [eEthereumNetwork.goerli]: {
-      // ARTH: '0x85a79d4aef51bED57DB20C989085E4BF4733e5B2',
-      // USDC: '0xEe96053c808A869E37Ac049bE94b20DA2405Eebe',
-      // DAI: '0x9634761b6C9559849000d037E18cEa3665CDa1AB',
-    },
+    [eEthereumNetwork.goerli]: {},
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.main]: {
-      DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-      UniARTHWETH: '0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11',
+      DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      ARTH: '0x8cc0f052fff7ead7f2edcccac895502e884a8a71',
+      USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     },
     [eEthereumNetwork.tenderly]: {},
   },
   ChainlinkAggregator: {
     [eEthereumNetwork.goerli]: {
       USDC: '0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e',
+      DAI: '0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e',
       ARTH: '0x533dd0bd795d1fa0b7ed13479e498a55e32238c1',
-      USDT: '0x533dd0bd795d1fa0b7ed13479e498a55e32238c1',
     },
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.main]: {},

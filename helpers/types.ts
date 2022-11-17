@@ -246,6 +246,7 @@ export interface IReserveParams extends IReserveBorrowParams, IReserveCollateral
   aTokenImpl: eContractid;
   reserveFactor: string;
   strategy: IInterestRateStrategyParams;
+  extraParams?: string[];
 }
 
 export interface IInterestRateStrategyParams {

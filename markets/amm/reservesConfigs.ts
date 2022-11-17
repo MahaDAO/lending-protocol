@@ -7,20 +7,34 @@ export const strategyARTH: IReserveParams = {
   liquidationThreshold: '8000',
   liquidationBonus: '10500',
   borrowingEnabled: true,
+  stableBorrowRateEnabled: true,
+  reserveDecimals: '18',
+  aTokenImpl: eContractid.AToken,
+  reserveFactor: '1000',
+};
+
+// DAI
+export const strategyStable: IReserveParams = {
+  strategy: rateStrategyStable,
+  baseLTVAsCollateral: '7500',
+  liquidationThreshold: '8000',
+  liquidationBonus: '10500',
+  borrowingEnabled: false,
   stableBorrowRateEnabled: false,
   reserveDecimals: '18',
   aTokenImpl: eContractid.AToken,
   reserveFactor: '1000',
 };
 
-export const strategyStable: IReserveParams = {
+// USDC
+export const strategyUSDC: IReserveParams = {
   strategy: rateStrategyStable,
-  baseLTVAsCollateral: '7500',
-  liquidationThreshold: '8000',
+  baseLTVAsCollateral: '8000',
+  liquidationThreshold: '8500',
   liquidationBonus: '10500',
-  borrowingEnabled: true,
-  stableBorrowRateEnabled: true,
-  reserveDecimals: '18',
+  borrowingEnabled: false,
+  stableBorrowRateEnabled: false,
+  reserveDecimals: '6',
   aTokenImpl: eContractid.AToken,
   reserveFactor: '1000',
 };

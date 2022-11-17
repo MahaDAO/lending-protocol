@@ -32,7 +32,6 @@ export const setInitialMarketRatesInRatesOracleByHelper = async (
       (value) => value === assetSymbol
     );
 
-    console.log('hit', assetsAddresses, assetAddressIndex, assetSymbol);
     const [, assetAddress] = (Object.entries(assetsAddresses) as [string, string][])[
       assetAddressIndex
     ];
@@ -78,7 +77,6 @@ export const setInitialAssetPricesInOracle = async (
       (value) => value === assetSymbol
     );
 
-    console.log('fuc;', assetSymbol, assetsAddresses, prices);
     const [, assetAddress] = (Object.entries(assetsAddresses) as [string, string][])[
       assetAddressIndex
     ];

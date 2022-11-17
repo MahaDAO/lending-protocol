@@ -81,7 +81,6 @@ task('dev:deploy-oracles', 'Deploy oracles for dev environment')
       ...tokensAddressesWithoutUsd,
     };
 
-    console.log('hit', LendingRateOracleRatesCommon, allReservesAddresses, admin);
     await setInitialMarketRatesInRatesOracleByHelper(
       LendingRateOracleRatesCommon,
       allReservesAddresses,
