@@ -1,29 +1,29 @@
-import { IAmmConfiguration, eEthereumNetwork } from '../../helpers/types';
+import { IMainConfiguration, eEthereumNetwork } from '../../helpers/types';
 
 import { CommonsConfig } from '../commons';
-import { strategyStable, strategyARTH } from './reservesConfigs';
+import { strategyARTHWETH, strategyWETH, strategyARTH } from './reservesConfigs';
 
 // ----------------
 // POOL--SPECIFIC PARAMS
 // ----------------
 
-export const AmmConfig: IAmmConfiguration = {
+export const AmmConfig: IMainConfiguration = {
   ...CommonsConfig,
-  MarketId: 'MahaLend AMM Market',
-  ATokenNamePrefix: 'MahaLend AMM Market',
-  StableDebtTokenNamePrefix: 'MahaLend  AMM stable debt',
-  VariableDebtTokenNamePrefix: 'MahaLend AMM variable debt',
-  ProviderId: 1,
+  MarketId: 'MahaLend Market',
+  ATokenNamePrefix: 'MahaLend Market',
+  StableDebtTokenNamePrefix: 'MahaLend stable debt',
+  VariableDebtTokenNamePrefix: 'MahaLend variable debt',
+  ProviderId: 0,
   ReservesConfig: {
-    USDC: strategyStable,
+    WETH: strategyWETH,
     ARTH: strategyARTH,
-    DAI: strategyStable,
+    UniARTHWETH: strategyARTHWETH,
   },
   ReserveAssets: {
     [eEthereumNetwork.goerli]: {
+      WETH: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
       ARTH: '0x85a79d4aef51bED57DB20C989085E4BF4733e5B2',
-      USDC: '0xEe96053c808A869E37Ac049bE94b20DA2405Eebe',
-      DAI: '0x9634761b6C9559849000d037E18cEa3665CDa1AB',
+      UniARTHWETH: '0x7c66d8e749b2c0ad71d2c57a7b53ffc330874f48',
     },
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.main]: {
@@ -34,9 +34,9 @@ export const AmmConfig: IAmmConfiguration = {
   },
   ChainlinkAggregator: {
     [eEthereumNetwork.goerli]: {
-      USDC: '0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e',
+      WETH: '0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e',
       ARTH: '0x533dd0bd795d1fa0b7ed13479e498a55e32238c1',
-      USDT: '0x533dd0bd795d1fa0b7ed13479e498a55e32238c1',
+      UniARTHWETH: '0x533dd0bd795d1fa0b7ed13479e498a55e32238c1',
     },
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.main]: {},
