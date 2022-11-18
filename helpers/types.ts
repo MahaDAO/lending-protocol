@@ -247,6 +247,7 @@ export interface IReserveParams extends IReserveBorrowParams, IReserveCollateral
   reserveFactor: string;
   strategy: IInterestRateStrategyParams;
   extraParams?: string[];
+  maxAmount?: number;
 }
 
 export interface IInterestRateStrategyParams {

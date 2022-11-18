@@ -42,7 +42,7 @@ export const NETWORKS_DEFAULT_GAS: iParamsPerNetwork<number> = {
   [eEthereumNetwork.main]: 65 * GWEI,
   [eEthereumNetwork.hardhat]: 65 * GWEI,
   [eEthereumNetwork.tenderly]: 1 * GWEI,
-  [eEthereumNetwork.goerli]: 2 * GWEI,
+  [eEthereumNetwork.goerli]: 30 * GWEI,
 };
 
 export const BLOCK_TO_FORK: iParamsPerNetwork<number | undefined> = {

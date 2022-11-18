@@ -1,7 +1,7 @@
 import { IMainConfiguration, eEthereumNetwork } from '../../helpers/types';
 
 import { CommonsConfig } from '../commons';
-import { strategyARTHWETH, strategyStable, strategyWETH, strategyARTH } from './reservesConfigs';
+import { strategyVolatileLP, strategyStable, strategyWETH, strategyARTH } from './reservesConfigs';
 
 // ----------------
 // POOL--SPECIFIC PARAMS
@@ -19,7 +19,7 @@ export const MainConfig: IMainConfiguration = {
     ARTH: strategyARTH,
     DAI: strategyStable,
     USDC: strategyStable,
-    UniARTHWETH: strategyARTHWETH,
+    UniARTHWETH: strategyVolatileLP,
   },
   ReserveAssets: {
     [eEthereumNetwork.goerli]: {
