@@ -11,6 +11,7 @@ export enum eEthereumNetwork {
   hardhat = 'hardhat',
   tenderly = 'tenderly',
   goerli = 'goerli',
+  polygon = 'polygon',
 }
 
 export enum EthereumNetworkNames {
@@ -18,6 +19,7 @@ export enum EthereumNetworkNames {
   hardhat = 'hardhat',
   tenderly = 'tenderly',
   goerli = 'goerli',
+  polygon = 'polygon',
 }
 
 export enum AavePools {
@@ -194,9 +196,11 @@ export interface iAssetCommon<T> {
 export interface iAssetBase<T> {
   WETH: T;
   DAI: T;
+  WMATIC: T;
   ARTH: T;
   USDC: T;
   UniARTHWETH: T;
+  SushiUSDCUSDT: T;
 }
 
 export type iMockAssets<T> = Pick<iAssetBase<T>, 'ARTH' | 'WETH' | 'DAI' | 'USDC'>;
@@ -207,7 +211,7 @@ export type iAssetsWithoutUSD<T> = Omit<iAssetBase<T>, 'USDC' | 'DAI'>;
 
 export type iMainPoolAssets<T> = Pick<
   iAssetBase<T>,
-  'ARTH' | 'WETH' | 'DAI' | 'USDC' | 'UniARTHWETH'
+  'ARTH' | 'WETH' | 'DAI' | 'USDC' | 'UniARTHWETH' | 'WMATIC' | 'SushiUSDCUSDT'
 >;
 
 export type iAmmPoolAssets<T> = Pick<iAssetBase<T>, 'ARTH' | 'DAI' | 'USDC'>;
@@ -220,26 +224,11 @@ export enum TokenContractId {
   DAI = 'DAI',
   MAHA = 'MAHA',
   ARTH = 'ARTH',
+  WMATIC = 'WMATIC',
   WETH = 'WETH',
   USDC = 'USDC',
+  SushiUSDCUSDT = 'SushiUSDCUSDT',
   UniARTHWETH = 'UniARTHWETH',
-  // UniDAIWETH = 'UniDAIWETH',
-  // UniWBTCWETH = 'UniWBTCWETH',
-  // UniAAVEWETH = 'UniAAVEWETH',
-  // UniBATWETH = 'UniBATWETH',
-  // UniDAIUSDC = 'UniDAIUSDC',
-  // UniCRVWETH = 'UniCRVWETH',
-  // UniLINKWETH = 'UniLINKWETH',
-  // UniMKRWETH = 'UniMKRWETH',
-  // UniRENWETH = 'UniRENWETH',
-  // UniSNXWETH = 'UniSNXWETH',
-  // UniUNIWETH = 'UniUNIWETH',
-  // UniUSDCWETH = 'UniUSDCWETH',
-  // UniWBTCUSDC = 'UniWBTCUSDC',
-  // UniYFIWETH = 'UniYFIWETH',
-  // BptWBTCWETH = 'BptWBTCWETH',
-  // BptBALWETH = 'BptBALWETH',
-  // WMATIC = 'WMATIC',
 }
 
 export interface IReserveParams extends IReserveBorrowParams, IReserveCollateralParams {
@@ -289,6 +278,7 @@ export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.main]: T;
   [eEthereumNetwork.hardhat]: T;
   [eEthereumNetwork.tenderly]: T;
+  [eEthereumNetwork.polygon]: T;
   [eEthereumNetwork.goerli]: T;
 }
 

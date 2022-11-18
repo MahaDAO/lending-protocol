@@ -242,7 +242,6 @@ export const deployAaveLibraries = async (
 };
 
 export const deployLendingPool = async (verify?: boolean) => {
-  console.log('deploying lenidng pool');
   const libraries = await deployAaveLibraries(verify);
   const lendingPoolImpl = await new LendingPoolFactory(libraries, await getFirstSigner()).deploy();
   await insertContractAddressInDb(eContractid.LendingPoolImpl, lendingPoolImpl.address);
@@ -506,12 +505,13 @@ export const deployAllMockTokens = async (verify?: boolean) => {
   for (const tokenSymbol of Object.keys(TokenContractId)) {
     let decimals = '18';
 
-    let configData = (<any>protoConfigData)[tokenSymbol];
-    tokens[tokenSymbol] = await deployMintableERC20(
-      [tokenSymbol, tokenSymbol, configData ? configData.reserveDecimals : decimals],
-      verify
-    );
-    await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
+    console.log(protoConfigData, tokenSymbol);
+    // let configData = (<any>protoConfigData)[tokenSymbol];
+    // tokens[tokenSymbol] = await deployMintableERC20(
+    //   [tokenSymbol, tokenSymbol, configData ? configData.reserveDecimals : decimals],
+    //   verify
+    // );
+    // await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
   }
   return tokens;
 };

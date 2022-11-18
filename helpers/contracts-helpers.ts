@@ -138,7 +138,7 @@ export const linkBytecode = (artifact: BuidlerArtifact | Artifact, libraries: an
 };
 
 export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNetwork) => {
-  const { main, tenderly, goerli } = param as iEthereumParamsPerNetwork<T>;
+  const { main, tenderly, goerli, polygon } = param as iEthereumParamsPerNetwork<T>;
 
   if (process.env.FORK) {
     return param[process.env.FORK as eNetwork] as T;
@@ -153,6 +153,8 @@ export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNet
       return tenderly;
     case eEthereumNetwork.goerli:
       return goerli;
+    case eEthereumNetwork.polygon:
+      return polygon;
   }
 };
 

@@ -10,7 +10,6 @@ task('full:data-provider', 'Initialize lending pool configuration.')
       await localBRE.run('set-DRE');
 
       const addressesProvider = await getLendingPoolAddressesProvider();
-
       await deployAaveProtocolDataProvider(addressesProvider.address, verify);
     } catch (err) {
       console.error(err);

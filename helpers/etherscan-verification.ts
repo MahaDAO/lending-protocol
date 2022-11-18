@@ -21,6 +21,7 @@ export const SUPPORTED_ETHERSCAN_NETWORKS = [
   'matic',
   'mumbai',
   'goerli',
+  'polygon',
   'avalanche',
   'fuji',
 ];

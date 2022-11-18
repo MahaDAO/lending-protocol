@@ -33,6 +33,7 @@ export const NETWORKS_RPC_URL: iParamsPerNetwork<string> = {
     : `https://mainnet.infura.io/v3/${INFURA_KEY}`,
   [eEthereumNetwork.hardhat]: 'http://localhost:8545',
   [eEthereumNetwork.tenderly]: `https://rpc.tenderly.co/fork/`,
+  [eEthereumNetwork.polygon]: `https://polygon-rpc.com/`,
   [eEthereumNetwork.goerli]: ALCHEMY_KEY
     ? `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_KEY}`
     : `https://goerli.infura.io/v3/${INFURA_KEY}`,
@@ -43,6 +44,7 @@ export const NETWORKS_DEFAULT_GAS: iParamsPerNetwork<number> = {
   [eEthereumNetwork.hardhat]: 65 * GWEI,
   [eEthereumNetwork.tenderly]: 1 * GWEI,
   [eEthereumNetwork.goerli]: 30 * GWEI,
+  [eEthereumNetwork.polygon]: 100 * GWEI,
 };
 
 export const BLOCK_TO_FORK: iParamsPerNetwork<number | undefined> = {
@@ -50,4 +52,5 @@ export const BLOCK_TO_FORK: iParamsPerNetwork<number | undefined> = {
   [eEthereumNetwork.hardhat]: undefined,
   [eEthereumNetwork.tenderly]: undefined,
   [eEthereumNetwork.goerli]: undefined,
+  [eEthereumNetwork.polygon]: undefined,
 };

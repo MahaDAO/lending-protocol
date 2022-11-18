@@ -59,7 +59,7 @@ task('print-config', 'Inits the DRE, to have access to all the plugins')
       'isFrozen',
     ];
     const tokensFields = ['aToken', 'stableDebtToken', 'variableDebtToken'];
-    for (const [symbol, address] of Object.entries<string>(
+    for (const [symbol, address] of Object.entries(
       getParamPerNetwork(poolConfig.ReserveAssets, network as eNetwork)
     )) {
       console.log(`- ${symbol} asset config`);

@@ -11,7 +11,7 @@ require('dotenv').config();
 
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
-import 'temp-hardhat-etherscan';
+import '@nomiclabs/hardhat-etherscan';
 import 'hardhat-gas-reporter';
 import 'hardhat-typechain';
 import '@tenderly/hardhat-tenderly';
@@ -22,6 +22,7 @@ const DEFAULT_BLOCK_GAS_LIMIT = 8000000;
 const DEFAULT_GAS_MUL = 2;
 const HARDFORK = 'istanbul';
 const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY || '';
+const POLYGONSCAN_KEY = process.env.POLYGONSCAN_KEY || '';
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
 const MNEMONIC = process.env.MNEMONIC || '';
 const UNLIMITED_BYTECODE_SIZE = process.env.UNLIMITED_BYTECODE_SIZE === 'true';
@@ -70,7 +71,10 @@ const buidlerConfig: HardhatUserConfig = {
     target: 'ethers-v5',
   },
   etherscan: {
-    apiKey: ETHERSCAN_KEY,
+    apiKey: {
+      mainnet: ETHERSCAN_KEY,
+      polygon: POLYGONSCAN_KEY,
+    },
   },
   mocha: {
     timeout: 0,
@@ -87,6 +91,7 @@ const buidlerConfig: HardhatUserConfig = {
     },
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
     tenderly: getCommonNetworkConfig(eEthereumNetwork.tenderly, 3030),
+    polygon: getCommonNetworkConfig(eEthereumNetwork.polygon, 137),
     goerli: getCommonNetworkConfig(eEthereumNetwork.goerli, 5),
     hardhat: {
       hardfork: 'berlin',
