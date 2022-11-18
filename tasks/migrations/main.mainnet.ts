@@ -35,7 +35,7 @@ task('aave:mainnet', 'Deploy development enviroment')
     await DRE.run('full:data-provider', { pool: POOL_NAME });
 
     console.log('5. Deploy WETH Gateway');
-    await DRE.run('full-deploy-weth-gateway', { pool: POOL_NAME });
+    await DRE.run('full:deploy-weth-gateway', { pool: POOL_NAME });
 
     console.log('6. Initialize lending pool');
     await DRE.run('full:initialize-lending-pool', { pool: POOL_NAME });
