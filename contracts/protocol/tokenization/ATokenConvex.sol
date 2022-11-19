@@ -104,8 +104,8 @@ contract ATokenConvex is AToken, FeeBase {
     IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
 
     // tax and send the earnings
-    _chargeFeeAndTransfer(convex, amountScaled, msg.sender, _treasury);
-    _chargeFeeAndTransfer(curve, amountScaled, msg.sender, _treasury);
+    _chargeFeeAndTransfer(convex, amountScaled, receiverOfUnderlying, _treasury);
+    _chargeFeeAndTransfer(curve, amountScaled, receiverOfUnderlying, _treasury);
 
     _burn(user, amountScaled);
 

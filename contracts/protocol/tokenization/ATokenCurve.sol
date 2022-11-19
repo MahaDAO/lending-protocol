@@ -109,7 +109,7 @@ contract ATokenCurve is AToken, FeeBase {
 
     // tax and send the earnings
     uint256 earnings = _accumulatedRewardsForAmount(curve, amountScaled);
-    _chargeFeeAndTransfer(curve, earnings, user, _treasury);
+    _chargeFeeAndTransfer(curve, earnings, receiverOfUnderlying, _treasury);
 
     _burn(user, amountScaled);
 
