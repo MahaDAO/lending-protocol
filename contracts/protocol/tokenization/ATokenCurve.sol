@@ -10,7 +10,7 @@ import {Errors} from '../libraries/helpers/Errors.sol';
 import {AToken} from './AToken.sol';
 import {FeeBase} from './base/FeeBase.sol';
 
-import {IConvexBaseRewards} from '../../interfaces/IConvexBaseRewards.sol';
+import {ICurveGauge, ICurveGaugeMinter} from '../../interfaces/ICurveGauge.sol';
 import {IAaveIncentivesController} from '../../interfaces/IAaveIncentivesController.sol';
 
 /**
@@ -18,13 +18,15 @@ import {IAaveIncentivesController} from '../../interfaces/IAaveIncentivesControl
  * @dev Implementation of the interest bearing token for the Aave protocol
  * @author Aave
  */
-contract ATokenConvex is AToken, FeeBase {
+contract ATokenCurve is AToken, FeeBase {
   using SafeERC20 for IERC20;
   using WadRayMath for uint256;
 
-  IConvexBaseRewards public rewardsContract;
+  ICurveGauge public gauge;
+  ICurveGaugeMinter public minter;
   IERC20 public curve;
-  IERC20 public convex;
+
+  uint256 private MAX_INT = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
 
   /**
    * @dev Initializes the aToken
@@ -72,14 +74,16 @@ contract ATokenConvex is AToken, FeeBase {
     _underlyingAsset = underlyingAsset;
     _incentivesController = incentivesController;
 
-    (address _rewardsContract, address _curve, address _convex) = abi.decode(
+    (address _gauge, address _minter, address _curve) = abi.decode(
       params,
       (address, address, address)
     );
 
-    rewardsContract = IConvexBaseRewards(_rewardsContract);
+    gauge = ICurveGauge(_gauge);
+    minter = ICurveGaugeMinter(_minter);
     curve = IERC20(_curve);
-    convex = IERC20(_convex);
+
+    IERC20(_underlyingAsset).approve(_gauge, MAX_INT);
   }
 
   /**
@@ -99,13 +103,13 @@ contract ATokenConvex is AToken, FeeBase {
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
 
-    rewardsContract.getReward();
-    rewardsContract.withdrawAndUnwrap(amount, true);
+    getRewards();
+    gauge.withdraw(amount);
     IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
 
     // tax and send the earnings
-    _chargeFeeAndTransfer(convex, amountScaled, msg.sender, _treasury);
-    _chargeFeeAndTransfer(curve, amountScaled, msg.sender, _treasury);
+    uint256 earnings = _accumulatedRewardsForAmount(curve, amountScaled);
+    _chargeFeeAndTransfer(curve, earnings, user, _treasury);
 
     _burn(user, amountScaled);
 
@@ -131,7 +135,7 @@ contract ATokenConvex is AToken, FeeBase {
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
     _mint(user, amountScaled);
-    rewardsContract.stake(amount);
+    gauge.deposit(amount);
 
     emit Transfer(address(0), user, amount);
     emit Mint(user, amount, index);
@@ -162,8 +166,12 @@ contract ATokenConvex is AToken, FeeBase {
     emit Mint(treasury, amount, index);
   }
 
+  function getRewards() public virtual {
+    minter.mint(address(gauge));
+  }
+
   function accumulatedRewards() external view virtual returns (uint256[2] memory) {
-    return [_accumulatedRewards(convex), _accumulatedRewards(curve)];
+    return [_accumulatedRewards(curve), 0];
   }
 
   function accumulatedRewardsFor(address _user) external view virtual returns (uint256[2] memory) {
@@ -172,7 +180,7 @@ contract ATokenConvex is AToken, FeeBase {
 
   function _accumulatedRewardsFor(address _user) internal view returns (uint256[2] memory) {
     uint256 bal = balanceOf(_user);
-    return [_accumulatedRewardsForAmount(convex, bal), _accumulatedRewardsForAmount(curve, bal)];
+    return [_accumulatedRewardsForAmount(curve, bal), 0];
   }
 
   function _accumulatedRewardsForAmount(IERC20 token, uint256 bal) internal view returns (uint256) {
